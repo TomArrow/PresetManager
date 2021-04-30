@@ -17,5 +17,12 @@ namespace PresetManager.TestApp
         [Control("textbox1")]
         public int testValueNumber = 2;
 
+        public enum TestRadioValue
+        {
+            [Control("radio1")]
+            value1,
+            [Control("radio2")]
+            value2
+        }
     }
 }

@@ -8,7 +8,7 @@ using System.Reflection ;
 
 namespace PresetManager.Attributes
 {
-    [AttributeUsage(AttributeTargets.Field,AllowMultiple =true,Inherited =true)]
+    [AttributeUsage(AttributeTargets.Field|AttributeTargets.Enum,AllowMultiple =true,Inherited =true)]
     public class Control : Attribute
     {
 

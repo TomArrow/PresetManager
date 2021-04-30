@@ -12,48 +12,101 @@ namespace PresetManager
 {
     public class AppSettings
     {
+        GUIAdapter _dataContext = null;
 
-        public event EventHandler sendToGUIRequested;
-        public event EventHandler readFromGUIRequested;
-        
-        public event EventHandler saveToConfigRequested;
-        public event EventHandler readFromConfigRequested;
+        string currentPreset = "";
 
-        protected virtual void OnSendToGUIRequested(EventArgs e)
+        /// <summary>
+        /// Bind this settings object to WPF controls. Supported mappings: bool to CheckBox, enum to RadioButtons, string, double, float, int to TextBox
+        /// </summary>
+        /// <param name="dataContext">The WPF element that contains all the controls required for binding</param>
+        public void Bind(GUIAdapter dataContext)
         {
-            sendToGUIRequested?.Invoke(this, e);
-        }
-        protected virtual void OnReadFromGUIRequested(EventArgs e)
-        {
-            readFromGUIRequested?.Invoke(this, e);
+            _dataContext = dataContext;
         }
 
-        protected virtual void OnSaveToConfigRequested(EventArgs e)
+        public void SetPresetFolder()
         {
-            saveToConfigRequested?.Invoke(this, e);
+
         }
-        protected virtual void OnReadFromConfigRequested(EventArgs e)
+
+        /*public string[] enumeratePresets()
         {
-            readFromConfigRequested?.Invoke(this, e);
+
+        }*/
+
+        public void setCurrentPreset(string preset)
+        {
+
         }
+
+        public void saveToPreset(string preset = null)
+        {
+
+        }
+
+        public void loadFromPreset(string preset= null)
+        {
+
+        }
+
 
         public void sendToGUI()
         {
-            OnSendToGUIRequested(EventArgs.Empty);
+
         }
+
         public void readFromGUI()
         {
-            OnReadFromGUIRequested(EventArgs.Empty);
+            if(_dataContext == null)
+            {
+                throw new Exception("Cannot read from GUI unless dataContext has been set using Bind()");
+            }
+
+            GUIAdapter dataContext = _dataContext;
+
+            FieldInfo[] members = this.GetType().GetFields();
+            foreach (FieldInfo member in members)
+            {
+
+                MessageBox.Show(member.Name);
+                Attribute[] controlInfos = member.GetCustomAttributes(typeof(Control)).ToArray();
+                foreach (Control controlInfo in controlInfos)
+                {
+
+                    FrameworkElement dataElement = (FrameworkElement)dataContext.FindName(controlInfo.getSourceElement());
+                    MessageBox.Show(dataElement.ToString());
+
+                    object converted = "";
+                    switch (dataElement.GetType().ToString())
+                    {
+                        case "System.Windows.Controls.TextBox":
+                            TypeDescriptor.GetConverter(dataElement).ConvertTo(((System.Windows.Controls.TextBox)dataElement).Text, member.FieldType);
+                            break;
+                        case "System.Windows.Controls.CheckBox":
+                            converted = ((System.Windows.Controls.CheckBox)dataElement).IsChecked;
+                            //TypeDescriptor.GetConverter(dataElement).ConvertTo(((System.Windows.Controls.CheckBox)dataElement).IsChecked, member.FieldType);
+                            break;
+                        default:
+                            break;
+                    }
+
+                    MessageBox.Show(converted.ToString());
+                }
+            }
         }
 
         public void saveToConfig()
         {
-            OnSaveToConfigRequested(EventArgs.Empty);
+
         }
         public void readFromConfig()
         {
-            OnReadFromConfigRequested(EventArgs.Empty);
+
         }
-        
+        class PropertyMapping
+        {
+            public string 
+        }
     }
 }
