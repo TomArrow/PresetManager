@@ -154,7 +154,30 @@ namespace PresetManager
                     this.GetType().GetField(fieldName).SetValue(this,_dataContext.getAsBool(mapping.mappedName));
                     break;
                 default:
-                    //throw new Exception(mapping.fieldType.ToString() + " not implemented for reading from GUI.");
+                    if (mapping.GetType() == typeof(PropertyMappingEnum) &&  mapping.fieldType.IsSubclassOf(typeof(System.Enum)))
+                    {
+                        // Radio buttons
+                        int enumNumber = -1;
+                        int activeRadios = 0;
+                        foreach(KeyValuePair<int,string> subMapping in (mapping as PropertyMappingEnum).mappedNames)
+                        {
+                            if (_dataContext.getAsBool(subMapping.Value) == true)
+                            {
+                                enumNumber = subMapping.Key;
+                                activeRadios++;
+                            }
+                            if(activeRadios > 1)
+                            {
+                                throw new Exception(fieldName+": Multiple simmultaneously active radio buttons for enum mapping are not allowed.");
+                            }
+                        }
+                        this.GetType().GetField(fieldName).SetValue(this, enumNumber);
+                    }
+                    else
+                    {
+
+                        throw new Exception(mapping.fieldType.ToString() + " not implemented for reading from GUI.");
+                    }
                     break;
             }
         }
