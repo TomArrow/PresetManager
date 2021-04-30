@@ -24,6 +24,8 @@ namespace PresetManager.TestApp
         {
             InitializeComponent();
             MessageBox.Show("abc");
+
+            TestSettings testSettings = new TestSettings();
         }
 
         private void test()
