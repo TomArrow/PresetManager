@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PresetManager", "PresetManager\PresetManager.csproj", "{9436213E-7DDD-42BF-A109-8A8FF83D64C0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9436213E-7DDD-42BF-A109-8A8FF83D64C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9436213E-7DDD-42BF-A109-8A8FF83D64C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9436213E-7DDD-42BF-A109-8A8FF83D64C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9436213E-7DDD-42BF-A109-8A8FF83D64C0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DB139FD1-4F21-4BA6-92B2-ED7BBCCD6850}
+	EndGlobalSection
+EndGlobal
