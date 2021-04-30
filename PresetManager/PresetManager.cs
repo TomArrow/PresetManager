@@ -3,8 +3,8 @@ using System.Windows.Controls;
 
 namespace PresetManager
 {
-    public class Class1
+    public class PresetManagerCore
     {
-        StackPanel 
+
     }
 }
