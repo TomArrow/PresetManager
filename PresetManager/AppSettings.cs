@@ -25,6 +25,7 @@ namespace PresetManager
         public void Bind(GUIAdapter dataContext)
         {
             _dataContext = dataContext;
+            updateMappings();
         }
 
         public void SetPresetFolder()
@@ -49,52 +50,44 @@ namespace PresetManager
                 //MessageBox.Show(member.Name);
                 Control controlInfo = (Control)member.GetCustomAttribute(typeof(Control));
 
-                if(controlInfo == null)
-                {
-                    throw new Exception("Field "+member.Name+" has no Control attribute set. No binding posssible.");
-                }
 
                 // Enums get special treatment
-                if(fieldType == typeof(System.Enum)){
+                if(fieldType.IsSubclassOf(typeof(System.Enum))){
 
                     //PropertyMappingEnum<fieldType> propertyMapping = new PropertyMappingEnum<fieldType>();
 
-                    object propertyMapping = Activator.CreateInstance(typeof(PropertyMappingEnum<>).MakeGenericType(fieldType));
-                    MemberInfo[] enumMembers = member.FieldType.GetMembers();
-                    foreach(MemberInfo enumMember in enumMembers)
+                    PropertyMappingEnum propertyMapping = new PropertyMappingEnum();
+                    FieldInfo[] enumMembers = member.FieldType.GetFields();
+                    int[] enumValues = (int[])member.FieldType.GetEnumValues();
+                    int enumValueIndex = 0;
+                    for (int i = 0; i < enumMembers.Length; i++)
                     {
-                        propertyMapping.
-                    }
+                        FieldInfo enumMember = enumMembers[i];
+                        if (fieldType == enumMember.FieldType) { 
+                            int enumValue = enumValues[enumValueIndex++];
 
+                            Control controlInfoHere = (Control)enumMember.GetCustomAttribute(typeof(Control));
+                            if (controlInfoHere == null)
+                            {
+                                throw new Exception("Enum member " + enumMember.Name + " has no Control attribute set. No binding posssible.");
+                            }
+                            propertyMapping.mappedNames.Add(enumValue,controlInfoHere.getSourceElement());
+                        }
+                    }
+                    mappingsNew.Add(member.Name,propertyMapping);
                 } else
                 {
-                    
+
+                    if (controlInfo == null)
+                    {
+                        throw new Exception("Field " + member.Name + " has no Control attribute set. No binding posssible.");
+                    }
+
                     mappingsNew.Add(member.Name,new PropertyMapping(controlInfo.getSourceElement()));
                 }
 
-                /*foreach (Control controlInfo in controlInfos)
-                {
-                    
-                    FrameworkElement dataElement = (FrameworkElement)dataContext.FindName(controlInfo.getSourceElement());
-                    MessageBox.Show(dataElement.ToString());
-
-                    object converted = "";
-                    switch (dataElement.GetType().ToString())
-                    {
-                        case "System.Windows.Controls.TextBox":
-                            TypeDescriptor.GetConverter(dataElement).ConvertTo(((System.Windows.Controls.TextBox)dataElement).Text, member.FieldType);
-                            break;
-                        case "System.Windows.Controls.CheckBox":
-                            converted = ((System.Windows.Controls.CheckBox)dataElement).IsChecked;
-                            //TypeDescriptor.GetConverter(dataElement).ConvertTo(((System.Windows.Controls.CheckBox)dataElement).IsChecked, member.FieldType);
-                            break;
-                        default:
-                            break;
-                    }
-
-                    MessageBox.Show(converted.ToString());
-                }*/
             }
+            mappings = mappingsNew;
         }
 
 
@@ -137,33 +130,7 @@ namespace PresetManager
             foreach (FieldInfo member in members)
             {
 
-                MessageBox.Show(member.Name);
-                Attribute[] controlInfos = member.GetCustomAttributes(typeof(Control)).ToArray();
-
-
-
-                foreach (Control controlInfo in controlInfos)
-                {
-                    /*
-                    FrameworkElement dataElement = (FrameworkElement)dataContext.FindName(controlInfo.getSourceElement());
-                    MessageBox.Show(dataElement.ToString());
-
-                    object converted = "";
-                    switch (dataElement.GetType().ToString())
-                    {
-                        case "System.Windows.Controls.TextBox":
-                            TypeDescriptor.GetConverter(dataElement).ConvertTo(((System.Windows.Controls.TextBox)dataElement).Text, member.FieldType);
-                            break;
-                        case "System.Windows.Controls.CheckBox":
-                            converted = ((System.Windows.Controls.CheckBox)dataElement).IsChecked;
-                            //TypeDescriptor.GetConverter(dataElement).ConvertTo(((System.Windows.Controls.CheckBox)dataElement).IsChecked, member.FieldType);
-                            break;
-                        default:
-                            break;
-                    }
-
-                    MessageBox.Show(converted.ToString());*/
-                }
+                
             }
         }
 
@@ -192,10 +159,10 @@ namespace PresetManager
             }
         }
 
-        class PropertyMappingEnum<T> : PropertyMapping
+        class PropertyMappingEnum : PropertyMapping
         {
 
-            public Dictionary<string, T> mappedNames = new Dictionary<string, T>();
+            public Dictionary<int, string> mappedNames = new Dictionary<int,string>();
 
 
         }

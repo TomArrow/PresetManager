@@ -12,7 +12,7 @@ namespace PresetManager
         public static implicit operator GUIAdapter(FrameworkElement data) => new GUIAdapters.WPFAdapter(data);
 
 
-        public abstract string? getAsString(string name);
+        public abstract string getAsString(string name);
         public abstract int? getAsInteger(string name);
         public abstract double? getAsDouble(string name);
         public abstract float? getAsFloat(string name);

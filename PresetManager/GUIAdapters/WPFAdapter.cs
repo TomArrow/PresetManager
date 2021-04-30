@@ -40,7 +40,7 @@ namespace PresetManager.GUIAdapters
             }
         }
 
-        public override string? getAsString(string name)
+        public override string getAsString(string name)
         {
             FrameworkElement element = getElementByName(name);
             switch (element.GetType().ToString())
@@ -62,7 +62,13 @@ namespace PresetManager.GUIAdapters
                 case "System.Windows.Controls.TextBox":
                     int retVal;
                     bool success = int.TryParse(((TextBox)element).Text,out retVal);
-                    return success ? retVal : null;
+                    if (success)
+                    {
+                        return retVal;
+                    } else
+                    {
+                        return null;
+                    }
                     break;
                 case "System.Windows.Controls.Slider":
                     return (int)((Slider)element).Value;
@@ -81,7 +87,14 @@ namespace PresetManager.GUIAdapters
                 case "System.Windows.Controls.TextBox":
                     double retVal;
                     bool success = double.TryParse(((TextBox)element).Text, out retVal);
-                    return success ? retVal : null;
+                    if (success)
+                    {
+                        return retVal;
+                    }
+                    else
+                    {
+                        return null;
+                    }
                     break;
                 case "System.Windows.Controls.Slider":
                     return ((Slider)element).Value;
@@ -100,7 +113,14 @@ namespace PresetManager.GUIAdapters
                 case "System.Windows.Controls.TextBox":
                     float retVal;
                     bool success = float.TryParse(((TextBox)element).Text, out retVal);
-                    return success ? retVal : null;
+                    if (success)
+                    {
+                        return retVal;
+                    }
+                    else
+                    {
+                        return null;
+                    }
                     break;
                 case "System.Windows.Controls.Slider":
                     return (float)((Slider)element).Value;
