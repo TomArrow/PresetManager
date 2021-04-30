@@ -12,12 +12,12 @@ namespace PresetManager.TestApp
     class TestSettings : AppSettings
     {
         [Control("checkbox1")]
-        public bool testValueBinary = false;
+        public bool testValueBinary = true;
 
         [Control("textbox1")]
-        public int testValueNumber = 2;
+        public int testValueNumber = 0;
 
-        public TestRadioValue radioValue = TestRadioValue.value1;
+        public TestRadioValue radioValue = TestRadioValue.value2;
 
         public enum TestRadioValue
         {

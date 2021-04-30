@@ -12,11 +12,11 @@ namespace PresetManager
 {
     public class AppSettings
     {
-        GUIAdapter _dataContext = null;
+        private GUIAdapter _dataContext = null;
 
-        string currentPreset = "";
+        private string currentPreset = "";
 
-        Dictionary<string, PropertyMapping> mappings = new Dictionary<string, PropertyMapping>();
+        private Dictionary<string, PropertyMapping> mappings = new Dictionary<string, PropertyMapping>();
 
         /// <summary>
         /// Bind this settings object to WPF controls. Supported mappings: bool to CheckBox, enum to RadioButtons, string, double, float, int to TextBox
@@ -54,9 +54,10 @@ namespace PresetManager
                 // Enums get special treatment
                 if(fieldType.IsSubclassOf(typeof(System.Enum))){
 
-                    //PropertyMappingEnum<fieldType> propertyMapping = new PropertyMappingEnum<fieldType>();
+                   
 
                     PropertyMappingEnum propertyMapping = new PropertyMappingEnum();
+                    propertyMapping.fieldType = fieldType;
                     FieldInfo[] enumMembers = member.FieldType.GetFields();
                     int[] enumValues = (int[])member.FieldType.GetEnumValues();
                     int enumValueIndex = 0;
@@ -83,7 +84,9 @@ namespace PresetManager
                         throw new Exception("Field " + member.Name + " has no Control attribute set. No binding posssible.");
                     }
 
-                    mappingsNew.Add(member.Name,new PropertyMapping(controlInfo.getSourceElement()));
+                    PropertyMapping propertyMapping = new PropertyMapping(controlInfo.getSourceElement());
+                    propertyMapping.fieldType = fieldType;
+                    mappingsNew.Add(member.Name, propertyMapping);
                 }
 
             }
@@ -124,13 +127,35 @@ namespace PresetManager
                 throw new Exception("Cannot read from GUI unless dataContext has been set using Bind()");
             }
 
-            GUIAdapter dataContext = _dataContext;
-
-            FieldInfo[] members = this.GetType().GetFields();
-            foreach (FieldInfo member in members)
+            foreach(KeyValuePair<string,PropertyMapping> mappingPair in mappings)
             {
-
+                string fieldName = mappingPair.Key;
                 
+                readSingleValueFromGUI(fieldName);
+            }
+        }
+
+        public void readSingleValueFromGUI(string fieldName)
+        {
+            PropertyMapping mapping = mappings[fieldName];
+
+            switch (mapping.fieldType.ToString())
+            {
+                case "System.Int32":
+                    this.GetType().GetField(fieldName).SetValue(this, _dataContext.getAsInteger(mapping.mappedName));
+                    break;
+                case "System.Single": 
+                    this.GetType().GetField(fieldName).SetValue(this, _dataContext.getAsFloat(mapping.mappedName));
+                    break;
+                case "System.Double": 
+                    this.GetType().GetField(fieldName).SetValue(this, _dataContext.getAsDouble(mapping.mappedName));
+                    break;
+                case "System.Boolean": 
+                    this.GetType().GetField(fieldName).SetValue(this,_dataContext.getAsBool(mapping.mappedName));
+                    break;
+                default:
+                    //throw new Exception(mapping.fieldType.ToString() + " not implemented for reading from GUI.");
+                    break;
             }
         }
 
@@ -148,7 +173,7 @@ namespace PresetManager
 
         class PropertyMapping
         {
-
+            public Type fieldType;
             public string mappedName;
             public PropertyMapping( string mappedNameA)
             {

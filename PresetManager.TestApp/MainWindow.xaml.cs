@@ -29,6 +29,7 @@ namespace PresetManager.TestApp
             //PresetMan.Register(testSettings, this);
             testSettings.saveToConfig();
             testSettings.readFromGUI();
+            testSettings.saveToConfig();
         }
 
         private void test()

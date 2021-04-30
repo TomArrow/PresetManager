@@ -9,7 +9,7 @@
     <Grid>
         <StackPanel>
             <CheckBox x:Name="checkbox1">Checkbox 1 (test value binary)</CheckBox>
-            <TextBox x:Name="textbox1">2</TextBox>
+            <TextBox x:Name="textbox1">200</TextBox>
             <WrapPanel>
                 <RadioButton x:Name="radio1" IsChecked="True">radio1</RadioButton>
                 <RadioButton x:Name="radio2">radio2</RadioButton>
