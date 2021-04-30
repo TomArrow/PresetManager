@@ -11,10 +11,18 @@ namespace PresetManager.Attributes
     [AttributeUsage(AttributeTargets.Field,AllowMultiple =true,Inherited =true)]
     public class Control : Attribute
     {
+
+        string _sourceelement = "";
+
         public Control(string sourceElement)
         {
-            
 
+            _sourceelement = sourceElement;
+        }
+
+        public string getSourceElement()
+        {
+            return _sourceelement;
         }
     }
 }

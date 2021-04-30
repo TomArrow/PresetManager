@@ -9,6 +9,8 @@
     <Grid>
         <StackPanel>
             <CheckBox x:Name="checkbox1">Checkbox 1 (test value binary)</CheckBox>
+            <TextBox x:Name="textbox1">2</TextBox>
+            <Button x:Name="btnTest" Click="btnTest_Click">Do Test</Button>
         </StackPanel>
     </Grid>
 </Window>

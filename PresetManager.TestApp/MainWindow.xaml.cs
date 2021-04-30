@@ -23,12 +23,20 @@ namespace PresetManager.TestApp
         public MainWindow()
         {
             InitializeComponent();
-            MessageBox.Show("abc");
 
             TestSettings testSettings = new TestSettings();
+            testSettings.Bind(this);
+            //PresetMan.Register(testSettings, this);
+            testSettings.saveToConfig();
+            testSettings.readFromGUI();
         }
 
         private void test()
+        {
+
+        }
+
+        private void btnTest_Click(object sender, RoutedEventArgs e)
         {
 
         }
