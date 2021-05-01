@@ -329,8 +329,10 @@ namespace PresetManager
                         string enumName = _configAdapter.getAsString(fieldName);
                         if (enumName != null)
                         {
-
-                            mapping.fieldInfo.SetValue(this, Enum.Parse(mapping.fieldType,enumName,true));
+                            //try
+                            //{
+                            mapping.fieldInfo.SetValue(this, Enum.Parse(mapping.fieldType, enumName, true)); // This will throw an exception if there is an string value in the config that does not correlate to any of the enum values. But that's okay maybe.
+                            //}
                             //mapping.fieldInfo.SetValue(this, (int)guiInt642.Value);
                         }
                     }
