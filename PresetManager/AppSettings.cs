@@ -57,6 +57,7 @@ namespace PresetManager
                    
 
                     PropertyMappingEnum propertyMapping = new PropertyMappingEnum();
+                    propertyMapping.fieldInfo = member;
                     propertyMapping.fieldType = fieldType;
                     FieldInfo[] enumMembers = member.FieldType.GetFields();
                     int[] enumValues = (int[])member.FieldType.GetEnumValues();
@@ -86,6 +87,7 @@ namespace PresetManager
 
                     PropertyMapping propertyMapping = new PropertyMapping(controlInfo.getSourceElement());
                     propertyMapping.fieldType = fieldType;
+                    propertyMapping.fieldInfo = member;
                     mappingsNew.Add(member.Name, propertyMapping);
                 }
 
@@ -117,7 +119,17 @@ namespace PresetManager
 
         public void sendToGUI()
         {
+            if (_dataContext == null)
+            {
+                throw new Exception("Cannot read from GUI unless dataContext has been set using Bind()");
+            }
 
+            foreach (KeyValuePair<string, PropertyMapping> mappingPair in mappings)
+            {
+                string fieldName = mappingPair.Key;
+
+                sendSingleValueToGUI(fieldName);
+            }
         }
 
         public void readFromGUI()
@@ -130,8 +142,57 @@ namespace PresetManager
             foreach(KeyValuePair<string,PropertyMapping> mappingPair in mappings)
             {
                 string fieldName = mappingPair.Key;
-                
+
                 readSingleValueFromGUI(fieldName);
+            }
+        }
+
+        public void sendSingleValueToGUI(string fieldName)
+        {
+            PropertyMapping mapping = mappings[fieldName];
+
+            switch (mapping.fieldType.ToString())
+            {
+                case "System.Int32":
+                    _dataContext.writeInteger(mapping.mappedName,(int)mapping.fieldInfo.GetValue(this));
+                    break;
+                case "System.Single":
+                    _dataContext.writeFloat(mapping.mappedName, (float)mapping.fieldInfo.GetValue(this));
+                    break;
+                case "System.Double":
+                    _dataContext.writeDouble(mapping.mappedName, (double)mapping.fieldInfo.GetValue(this));
+                    break;
+                case "System.Boolean":
+                    _dataContext.writeBool(mapping.mappedName, (bool)mapping.fieldInfo.GetValue(this));
+                    break;
+                default:
+                    if (mapping.GetType() == typeof(PropertyMappingEnum) && mapping.fieldType.IsSubclassOf(typeof(System.Enum)))
+                    {
+                        // Radio buttons
+                        int activeRadios = 0;
+                        int valueToSet  = (int)mapping.fieldInfo.GetValue(this); 
+                        foreach (KeyValuePair<int, string> subMapping in (mapping as PropertyMappingEnum).mappedNames)
+                        {
+                            if(subMapping.Key == valueToSet)
+                            {
+                                _dataContext.writeBool(subMapping.Value,true);
+                                activeRadios++;
+                            } else
+                            {
+                                _dataContext.writeBool(subMapping.Value, false);
+                            }
+                            if (activeRadios > 1)
+                            {
+                                throw new Exception(fieldName + ": Multiple simmultaneously active radio buttons for enum mapping are not allowed.");
+                            }
+                        }
+                    }
+                    else
+                    {
+
+                        throw new Exception(mapping.fieldType.ToString() + " not implemented for reading from GUI.");
+                    }
+                    break;
             }
         }
 
@@ -142,16 +203,16 @@ namespace PresetManager
             switch (mapping.fieldType.ToString())
             {
                 case "System.Int32":
-                    this.GetType().GetField(fieldName).SetValue(this, _dataContext.getAsInteger(mapping.mappedName));
+                    mapping.fieldInfo.SetValue(this, _dataContext.getAsInteger(mapping.mappedName));
                     break;
-                case "System.Single": 
-                    this.GetType().GetField(fieldName).SetValue(this, _dataContext.getAsFloat(mapping.mappedName));
+                case "System.Single":
+                    mapping.fieldInfo.SetValue(this, _dataContext.getAsFloat(mapping.mappedName));
                     break;
-                case "System.Double": 
-                    this.GetType().GetField(fieldName).SetValue(this, _dataContext.getAsDouble(mapping.mappedName));
+                case "System.Double":
+                    mapping.fieldInfo.SetValue(this, _dataContext.getAsDouble(mapping.mappedName));
                     break;
-                case "System.Boolean": 
-                    this.GetType().GetField(fieldName).SetValue(this,_dataContext.getAsBool(mapping.mappedName));
+                case "System.Boolean":
+                    mapping.fieldInfo.SetValue(this,_dataContext.getAsBool(mapping.mappedName));
                     break;
                 default:
                     if (mapping.GetType() == typeof(PropertyMappingEnum) &&  mapping.fieldType.IsSubclassOf(typeof(System.Enum)))
@@ -171,7 +232,7 @@ namespace PresetManager
                                 throw new Exception(fieldName+": Multiple simmultaneously active radio buttons for enum mapping are not allowed.");
                             }
                         }
-                        this.GetType().GetField(fieldName).SetValue(this, enumNumber);
+                        mapping.fieldInfo.SetValue(this, enumNumber);
                     }
                     else
                     {
@@ -196,6 +257,7 @@ namespace PresetManager
 
         class PropertyMapping
         {
+            public FieldInfo fieldInfo;
             public Type fieldType;
             public string mappedName;
             public PropertyMapping( string mappedNameA)

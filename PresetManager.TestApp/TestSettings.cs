@@ -24,7 +24,9 @@ namespace PresetManager.TestApp
             [Control("radio1")]
             value1,
             [Control("radio2")]
-            value2
+            value2,
+            [Control("radio3")]
+            value3
         }
     }
 }

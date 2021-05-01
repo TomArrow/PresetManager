@@ -27,9 +27,10 @@ namespace PresetManager.TestApp
             TestSettings testSettings = new TestSettings();
             testSettings.Bind(this);
             //PresetMan.Register(testSettings, this);
-            testSettings.saveToConfig();
             testSettings.readFromGUI();
-            testSettings.saveToConfig();
+            testSettings.radioValue = TestSettings.TestRadioValue.value3;
+            testSettings.testValueNumber = 500000;
+            testSettings.sendToGUI();
         }
 
         private void test()
