@@ -258,7 +258,7 @@ namespace PresetManager
                     if (mapping.GetType() == typeof(PropertyMappingEnum) && mapping.fieldType.IsSubclassOf(typeof(System.Enum)))
                     {
 
-                        _configAdapter.writeInteger(fieldName, (int)mapping.fieldInfo.GetValue(this));
+                        _configAdapter.writeString(fieldName, mapping.fieldInfo.GetValue(this).ToString());
                     }
                     else
                     {
@@ -326,11 +326,12 @@ namespace PresetManager
                 default:
                     if (mapping.GetType() == typeof(PropertyMappingEnum) &&  mapping.fieldType.IsSubclassOf(typeof(System.Enum)))
                     {
-                        Int64? guiInt642 = _configAdapter.getAsInteger(fieldName);
-                        if (guiInt642.HasValue)
+                        string enumName = _configAdapter.getAsString(fieldName);
+                        if (enumName != null)
                         {
 
-                            mapping.fieldInfo.SetValue(this, (int)guiInt642.Value);
+                            mapping.fieldInfo.SetValue(this, Enum.Parse(mapping.fieldType,enumName,true));
+                            //mapping.fieldInfo.SetValue(this, (int)guiInt642.Value);
                         }
                     }
                     else
