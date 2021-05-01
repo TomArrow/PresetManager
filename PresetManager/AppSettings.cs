@@ -22,10 +22,11 @@ namespace PresetManager
         /// Bind this settings object to WPF controls. Supported mappings: bool to CheckBox, enum to RadioButtons, string, double, float, int to TextBox
         /// </summary>
         /// <param name="dataContext">The WPF element that contains all the controls required for binding</param>
-        public void Bind(GUIAdapter dataContext)
+        /// <param name="autoUpdateSettingsObject">Whether to attach event handlers to automatically apply changes in the GUI to the settings object</param>
+        public void Bind(GUIAdapter dataContext,bool autoUpdateSettingsObject = true)
         {
             _dataContext = dataContext;
-            updateMappings();
+            updateMappings(autoUpdateSettingsObject);
         }
 
         public void SetPresetFolder()
@@ -35,7 +36,7 @@ namespace PresetManager
 
 
 
-        public void updateMappings()
+        public void updateMappings(bool autoUpdateSettingsObject = true)
         {
 
             Dictionary<string, PropertyMapping> mappingsNew = new Dictionary<string, PropertyMapping>();
@@ -74,6 +75,12 @@ namespace PresetManager
                                 throw new Exception("Enum member " + enumMember.Name + " has no Control attribute set. No binding posssible.");
                             }
                             propertyMapping.mappedNames.Add(enumValue,controlInfoHere.getSourceElement());
+                            if (autoUpdateSettingsObject)
+                            {
+
+                                string localCopyOfMemberNameForLambda = member.Name;
+                                _dataContext.attachEventHandler(controlInfoHere.getSourceElement(), (a) => { readSingleValueFromGUI(localCopyOfMemberNameForLambda); });
+                            }
                         }
                     }
                     mappingsNew.Add(member.Name,propertyMapping);
@@ -88,6 +95,12 @@ namespace PresetManager
                     PropertyMapping propertyMapping = new PropertyMapping(controlInfo.getSourceElement());
                     propertyMapping.fieldType = fieldType;
                     propertyMapping.fieldInfo = member;
+                    if (autoUpdateSettingsObject)
+                    {
+
+                        string localCopyOfMemberNameForLambda = member.Name;
+                        _dataContext.attachEventHandler(controlInfo.getSourceElement(), (a) => { readSingleValueFromGUI(localCopyOfMemberNameForLambda); });
+                    }
                     mappingsNew.Add(member.Name, propertyMapping);
                 }
 
@@ -153,8 +166,14 @@ namespace PresetManager
 
             switch (mapping.fieldType.ToString())
             {
+                case "System.String":
+                    _dataContext.writeString(mapping.mappedName,(string)mapping.fieldInfo.GetValue(this));
+                    break;
                 case "System.Int32":
                     _dataContext.writeInteger(mapping.mappedName,(int)mapping.fieldInfo.GetValue(this));
+                    break;
+                case "System.Int64":
+                    _dataContext.writeInteger(mapping.mappedName,(Int64)mapping.fieldInfo.GetValue(this));
                     break;
                 case "System.Single":
                     _dataContext.writeFloat(mapping.mappedName, (float)mapping.fieldInfo.GetValue(this));
@@ -202,17 +221,53 @@ namespace PresetManager
 
             switch (mapping.fieldType.ToString())
             {
+                case "System.String":
+                    string guiString =  _dataContext.getAsString(mapping.mappedName);
+                    if(guiString != null)
+                    {
+
+                        mapping.fieldInfo.SetValue(this, guiString);
+                    }
+                    break;
                 case "System.Int32":
-                    mapping.fieldInfo.SetValue(this, _dataContext.getAsInteger(mapping.mappedName));
+                    Int64? guiInt = _dataContext.getAsInteger(mapping.mappedName);
+                    if (guiInt.HasValue)
+                    {
+
+                        mapping.fieldInfo.SetValue(this, (int)Math.Min(Int32.MaxValue,Math.Max(Int32.MinValue,guiInt.Value)));
+                    }
+                    break;
+                case "System.Int64":
+                    Int64? guiInt64 = _dataContext.getAsInteger(mapping.mappedName);
+                    if (guiInt64.HasValue)
+                    {
+
+                        mapping.fieldInfo.SetValue(this, guiInt64.Value);
+                    }
                     break;
                 case "System.Single":
-                    mapping.fieldInfo.SetValue(this, _dataContext.getAsFloat(mapping.mappedName));
+                    float? guiFloat = _dataContext.getAsFloat(mapping.mappedName);
+                    if (guiFloat.HasValue)
+                    {
+
+                        mapping.fieldInfo.SetValue(this, guiFloat.Value);
+                    }
                     break;
                 case "System.Double":
-                    mapping.fieldInfo.SetValue(this, _dataContext.getAsDouble(mapping.mappedName));
+                    double? guiDouble = _dataContext.getAsDouble(mapping.mappedName);
+                    if (guiDouble.HasValue)
+                    {
+
+                        mapping.fieldInfo.SetValue(this, guiDouble.Value);
+                    }
                     break;
                 case "System.Boolean":
-                    mapping.fieldInfo.SetValue(this,_dataContext.getAsBool(mapping.mappedName));
+                    bool? guiBool = _dataContext.getAsBool(mapping.mappedName);
+                    if (guiBool.HasValue)
+                    {
+
+                        mapping.fieldInfo.SetValue(this, guiBool.Value);
+                    }
                     break;
                 default:
                     if (mapping.GetType() == typeof(PropertyMappingEnum) &&  mapping.fieldType.IsSubclassOf(typeof(System.Enum)))

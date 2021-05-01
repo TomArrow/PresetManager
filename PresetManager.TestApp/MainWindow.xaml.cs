@@ -20,11 +20,12 @@ namespace PresetManager.TestApp
     /// </summary>
     public partial class MainWindow : Window
     {
+
+        TestSettings testSettings = new TestSettings();
         public MainWindow()
         {
             InitializeComponent();
 
-            TestSettings testSettings = new TestSettings();
             testSettings.Bind(this);
             //PresetMan.Register(testSettings, this);
             testSettings.readFromGUI();
@@ -40,7 +41,7 @@ namespace PresetManager.TestApp
 
         private void btnTest_Click(object sender, RoutedEventArgs e)
         {
-
+            MessageBox.Show(testSettings.testValueDouble.ToString() + "," + testSettings.testValueBinary + "," + testSettings.testValueNumber + "," + testSettings.radioValue);
         }
 
 

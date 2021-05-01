@@ -17,6 +17,9 @@ namespace PresetManager.TestApp
         [Control("textbox1")]
         public int testValueNumber = 0;
 
+        [Control("sliderValue")]
+        public double testValueDouble = 0;
+
         public TestRadioValue radioValue = TestRadioValue.value2;
 
         public enum TestRadioValue

@@ -15,6 +15,7 @@
                 <RadioButton x:Name="radio2">radio2</RadioButton>
                 <RadioButton x:Name="radio3">radio3</RadioButton>
             </WrapPanel>
+            <Slider Minimum="2" Maximum="400" x:Name="sliderValue" Value="20"></Slider>
             <Button x:Name="btnTest" Click="btnTest_Click">Do Test</Button>
         </StackPanel>
     </Grid>

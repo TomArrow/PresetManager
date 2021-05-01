@@ -40,6 +40,35 @@ namespace PresetManager.GUIAdapters
             }
         }
 
+        public override void attachEventHandler(string name, Action<string> action)
+        {
+            FrameworkElement element = getElementByName(name);
+            switch (element.GetType().ToString())
+            {
+                case "System.Windows.Controls.TextBox":
+                    TextChangedEventHandler eventHandler = (a, b) => { action(name); };
+                    ((TextBox)element).TextChanged += eventHandler;
+                    break;
+                case "System.Windows.Controls.CheckBox":
+                    RoutedEventHandler eventHandler2 = (a, b) => { action(name); };
+                    ((CheckBox)element).Checked += eventHandler2;
+                    ((CheckBox)element).Unchecked += eventHandler2;
+                    break;
+                case "System.Windows.Controls.Slider":
+                    RoutedPropertyChangedEventHandler<double> eventHandler3 = (a, b) => { action(name); };
+                    ((Slider)element).ValueChanged += eventHandler3;
+                    break;
+                case "System.Windows.Controls.RadioButton":
+                    RoutedEventHandler eventHandler4 = (a, b) => { action(name); };
+                    ((RadioButton)element).Checked += eventHandler4;
+                    ((RadioButton)element).Unchecked += eventHandler4;
+                    break;
+                default:
+                    throw new Exception("attachEventHandler not supported for " + element.GetType().ToString());
+                    break;
+            }
+        }
+
         public override string getAsString(string name)
         {
             FrameworkElement element = getElementByName(name);
@@ -54,14 +83,14 @@ namespace PresetManager.GUIAdapters
             }
         }
 
-        public override int? getAsInteger(string name)
+        public override Int64? getAsInteger(string name)
         {
             FrameworkElement element = getElementByName(name);
             switch (element.GetType().ToString())
             {
                 case "System.Windows.Controls.TextBox":
-                    int retVal;
-                    bool success = int.TryParse(((TextBox)element).Text,out retVal);
+                    Int64 retVal;
+                    bool success = Int64.TryParse(((TextBox)element).Text,out retVal);
                     if (success)
                     {
                         return retVal;
@@ -162,7 +191,7 @@ namespace PresetManager.GUIAdapters
             }
         }
 
-        public override void writeInteger(string name, int data)
+        public override void writeInteger(string name, Int64 data)
         {
             FrameworkElement element = getElementByName(name);
             switch (element.GetType().ToString())
