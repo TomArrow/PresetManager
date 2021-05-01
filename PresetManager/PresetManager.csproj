@@ -4,6 +4,11 @@
     <OutputType>Library</OutputType>
     <TargetFrameworks>net5.0-windows;netcoreapp3.1;net45</TargetFrameworks>
     <UseWPF>true</UseWPF>
+    <Authors>TomArrow</Authors>
+    <Company></Company>
+    <Product />
+    <Description>Simple GUI solution for managing presets for your WPF app, reading and writing settings to and from controls and writing the settings in the form of presets to individual ini config files that are easy to share.</Description>
+    <Version>0.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
