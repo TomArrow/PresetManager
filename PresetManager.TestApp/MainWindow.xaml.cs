@@ -29,11 +29,13 @@ namespace PresetManager.TestApp
             testSettings.Bind(this);
             testSettings.BindConfig("config");
             testSettings.attachPresetManager(presetManPanel);
+
+            testSettings.ValueUpdatedInGUI += (a, b) => { MessageBox.Show("Value "+b.FieldName + " was changed"); };
             //PresetMan.Register(testSettings, this);
-            testSettings.readFromGUI();
-            testSettings.radioValue = TestSettings.TestRadioValue.value3;
-            testSettings.testValueNumber = 500000;
-            testSettings.sendToGUI();
+            //testSettings.readFromGUI();
+            //testSettings.radioValue = TestSettings.TestRadioValue.value3;
+            //testSettings.testValueNumber = 500000;
+            //testSettings.sendToGUI();
         }
 
         private void test()

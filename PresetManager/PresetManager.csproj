@@ -8,7 +8,7 @@
     <Company></Company>
     <Product />
     <Description>Simple GUI solution for managing presets for your WPF app, reading and writing settings to and from controls and writing the settings in the form of presets to individual ini config files that are easy to share.</Description>
-    <Version>0.0.1.1</Version>
+    <Version>0.0.1.4</Version>
   </PropertyGroup>
 
   <ItemGroup>

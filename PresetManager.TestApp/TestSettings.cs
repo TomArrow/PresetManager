@@ -17,6 +17,10 @@ namespace PresetManager.TestApp
         [Control("textbox1")]
         public int testValueNumber = 0;
 
+        [Category("randomcategory")]
+        [Control("textbox2")]
+        public string testValueString = "blah";
+
         [Control("sliderValue")]
         public double testValueDouble = 0;
 

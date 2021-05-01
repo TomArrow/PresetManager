@@ -13,6 +13,22 @@ using System.Windows.Media.Imaging;
 
 namespace PresetManager
 {
+    public class ValueUpdatedEventArgs : EventArgs
+    {
+        string _fieldName;
+        
+        public string FieldName
+        {
+            get
+            {
+                return _fieldName;
+            }
+        }
+        public ValueUpdatedEventArgs(string fieldName)
+        {
+            _fieldName = fieldName;
+        }
+    }
     public class AppSettings
     {
         private GUIAdapter _dataContext = null;
@@ -20,6 +36,15 @@ namespace PresetManager
         private ConfigAdapter _configAdapter = null;
 
         private Dictionary<string, PropertyMapping> mappings = new Dictionary<string, PropertyMapping>();
+
+        public delegate void ValueUpdatedEventHandler(object sender, ValueUpdatedEventArgs e);
+        public event ValueUpdatedEventHandler ValueUpdatedInGUI;
+
+        protected virtual void OnValueUpdatedInGUI(ValueUpdatedEventArgs e)
+        {
+            ValueUpdatedEventHandler handler = ValueUpdatedInGUI;
+            handler?.Invoke(this, e);
+        }
 
         /// <summary>
         /// Bind this settings object to WPF controls. Supported mappings: bool to CheckBox, enum to RadioButtons or ListBoxItems, string, double, float, int to TextBox
@@ -108,6 +133,7 @@ namespace PresetManager
                 Type fieldType = member.FieldType;
                 //MessageBox.Show(member.Name);
                 Control controlInfo = (Control)member.GetCustomAttribute(typeof(Control));
+                Category categoryInfo = (Category)member.GetCustomAttribute(typeof(Category));
 
 
                 // Enums get special treatment
@@ -116,6 +142,10 @@ namespace PresetManager
                    
 
                     PropertyMappingEnum propertyMapping = new PropertyMappingEnum();
+                    if(categoryInfo != null)
+                    {
+                        propertyMapping.categoryName = categoryInfo.getCategoryName();
+                    }
                     propertyMapping.fieldInfo = member;
                     propertyMapping.fieldType = fieldType;
                     propertyMapping.defaultValue = member.GetValue(this);
@@ -134,12 +164,17 @@ namespace PresetManager
                                 throw new Exception("Enum member " + enumMember.Name + " has no Control attribute set. No binding posssible.");
                             }
                             propertyMapping.mappedNames.Add(enumValue,controlInfoHere.getSourceElement());
-                            if (autoUpdateSettingsObject)
-                            {
+                            
 
-                                string localCopyOfMemberNameForLambda = member.Name;
-                                _dataContext.attachEventHandler(controlInfoHere.getSourceElement(), (a) => { readSingleValueFromGUI(localCopyOfMemberNameForLambda); });
-                            }
+                            string localCopyOfMemberNameForLambda = member.Name;
+                            _dataContext.attachEventHandler(controlInfoHere.getSourceElement(), (a) => {
+                                if (autoUpdateSettingsObject)
+                                {
+                                    readSingleValueFromGUI(localCopyOfMemberNameForLambda);
+                                }
+                                OnValueUpdatedInGUI(new ValueUpdatedEventArgs(localCopyOfMemberNameForLambda));
+                            });
+                            
                         }
                     }
                     mappingsNew.Add(member.Name,propertyMapping);
@@ -155,12 +190,20 @@ namespace PresetManager
                     propertyMapping.fieldType = fieldType;
                     propertyMapping.fieldInfo = member;
                     propertyMapping.defaultValue = member.GetValue(this);
-                    if (autoUpdateSettingsObject)
+                    if (categoryInfo != null)
                     {
-
-                        string localCopyOfMemberNameForLambda = member.Name;
-                        _dataContext.attachEventHandler(controlInfo.getSourceElement(), (a) => { readSingleValueFromGUI(localCopyOfMemberNameForLambda); });
+                        propertyMapping.categoryName = categoryInfo.getCategoryName();
                     }
+
+                    string localCopyOfMemberNameForLambda = member.Name;
+                    _dataContext.attachEventHandler(controlInfo.getSourceElement(), (a) => {
+                        if (autoUpdateSettingsObject)
+                        {
+                            readSingleValueFromGUI(localCopyOfMemberNameForLambda);
+                        }
+                        OnValueUpdatedInGUI(new ValueUpdatedEventArgs(localCopyOfMemberNameForLambda)); 
+                    });
+                    
                     mappingsNew.Add(member.Name, propertyMapping);
                 }
 
@@ -263,28 +306,28 @@ namespace PresetManager
             switch (mapping.fieldType.ToString())
             {
                 case "System.String":
-                    _configAdapter.writeString(fieldName, (string)mapping.fieldInfo.GetValue(this));
+                    _configAdapter.writeString(fieldName, (string)mapping.fieldInfo.GetValue(this),mapping.categoryName);
                     break;
                 case "System.Int32":
-                    _configAdapter.writeInteger(fieldName, (int)mapping.fieldInfo.GetValue(this));
+                    _configAdapter.writeInteger(fieldName, (int)mapping.fieldInfo.GetValue(this), mapping.categoryName);
                     break;
                 case "System.Int64":
-                    _configAdapter.writeInteger(fieldName, (Int64)mapping.fieldInfo.GetValue(this));
+                    _configAdapter.writeInteger(fieldName, (Int64)mapping.fieldInfo.GetValue(this), mapping.categoryName);
                     break;
                 case "System.Single":
-                    _configAdapter.writeFloat(fieldName, (float)mapping.fieldInfo.GetValue(this));
+                    _configAdapter.writeFloat(fieldName, (float)mapping.fieldInfo.GetValue(this), mapping.categoryName);
                     break;
                 case "System.Double":
-                    _configAdapter.writeDouble(fieldName, (double)mapping.fieldInfo.GetValue(this));
+                    _configAdapter.writeDouble(fieldName, (double)mapping.fieldInfo.GetValue(this), mapping.categoryName);
                     break;
                 case "System.Boolean":
-                    _configAdapter.writeBool(fieldName, (bool)mapping.fieldInfo.GetValue(this));
+                    _configAdapter.writeBool(fieldName, (bool)mapping.fieldInfo.GetValue(this), mapping.categoryName);
                     break;
                 default:
                     if (mapping.GetType() == typeof(PropertyMappingEnum) && mapping.fieldType.IsSubclassOf(typeof(System.Enum)))
                     {
 
-                        _configAdapter.writeString(fieldName, mapping.fieldInfo.GetValue(this).ToString());
+                        _configAdapter.writeString(fieldName, mapping.fieldInfo.GetValue(this).ToString(), mapping.categoryName);
                     }
                     else
                     {
@@ -302,7 +345,7 @@ namespace PresetManager
             switch (mapping.fieldType.ToString())
             {
                 case "System.String":
-                    string guiString = _configAdapter.getAsString(fieldName);
+                    string guiString = _configAdapter.getAsString(fieldName, mapping.categoryName);
                     if(guiString != null)
                     {
 
@@ -313,7 +356,7 @@ namespace PresetManager
                     }
                     break;
                 case "System.Int32":
-                    Int64? guiInt = _configAdapter.getAsInteger(fieldName);
+                    Int64? guiInt = _configAdapter.getAsInteger(fieldName, mapping.categoryName);
                     if (guiInt.HasValue)
                     {
 
@@ -325,7 +368,7 @@ namespace PresetManager
                     }
                     break;
                 case "System.Int64":
-                    Int64? guiInt64 = _configAdapter.getAsInteger(fieldName);
+                    Int64? guiInt64 = _configAdapter.getAsInteger(fieldName, mapping.categoryName);
                     if (guiInt64.HasValue)
                     {
 
@@ -337,7 +380,7 @@ namespace PresetManager
                     }
                     break;
                 case "System.Single":
-                    float? guiFloat = _configAdapter.getAsFloat(fieldName);
+                    float? guiFloat = _configAdapter.getAsFloat(fieldName, mapping.categoryName);
                     if (guiFloat.HasValue)
                     {
 
@@ -349,7 +392,7 @@ namespace PresetManager
                     }
                     break;
                 case "System.Double":
-                    double? guiDouble = _configAdapter.getAsDouble(fieldName);
+                    double? guiDouble = _configAdapter.getAsDouble(fieldName, mapping.categoryName);
                     if (guiDouble.HasValue)
                     {
 
@@ -361,7 +404,7 @@ namespace PresetManager
                     }
                     break;
                 case "System.Boolean":
-                    bool? guiBool = _configAdapter.getAsBool(fieldName);
+                    bool? guiBool = _configAdapter.getAsBool(fieldName, mapping.categoryName);
                     if (guiBool.HasValue)
                     {
 
@@ -375,7 +418,7 @@ namespace PresetManager
                 default:
                     if (mapping.GetType() == typeof(PropertyMappingEnum) &&  mapping.fieldType.IsSubclassOf(typeof(System.Enum)))
                     {
-                        string enumName = _configAdapter.getAsString(fieldName);
+                        string enumName = _configAdapter.getAsString(fieldName, mapping.categoryName);
                         if (enumName != null)
                         {
                             //try
@@ -575,7 +618,8 @@ namespace PresetManager
 
         class PropertyMapping
         {
-            public object defaultValue;
+            public string categoryName = null;
+            public object defaultValue = null;
             public FieldInfo fieldInfo;
             public Type fieldType;
             public string mappedName;
