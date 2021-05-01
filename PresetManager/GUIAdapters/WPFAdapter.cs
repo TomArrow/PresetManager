@@ -63,6 +63,12 @@ namespace PresetManager.GUIAdapters
                     ((RadioButton)element).Checked += eventHandler4;
                     ((RadioButton)element).Unchecked += eventHandler4;
                     break;
+                case "System.Windows.Controls.ListBoxItem":
+                case "System.Windows.Controls.ComboBoxItem":
+                    RoutedEventHandler eventHandler5 = (a, b) => { action(name); };
+                    ((ListBoxItem)element).Selected += eventHandler5;
+                    ((ListBoxItem)element).Unselected += eventHandler5;
+                    break;
                 default:
                     throw new Exception("attachEventHandler not supported for " + element.GetType().ToString());
                     break;
@@ -171,6 +177,10 @@ namespace PresetManager.GUIAdapters
                 case "System.Windows.Controls.RadioButton":
                     return ((RadioButton)element).IsChecked;
                     break;
+                case "System.Windows.Controls.ListBoxItem":
+                case "System.Windows.Controls.ComboBoxItem":
+                    return ((ListBoxItem)element).IsSelected;
+                    break;
                 default:
                     throw new Exception("getAsBool not supported for " + element.GetType().ToString());
                     break;
@@ -252,6 +262,10 @@ namespace PresetManager.GUIAdapters
                     break;
                 case "System.Windows.Controls.RadioButton":
                     ((RadioButton)element).IsChecked = data;
+                    break;
+                case "System.Windows.Controls.ListBoxItem":
+                case "System.Windows.Controls.ComboBoxItem": 
+                    ((ListBoxItem)element).IsSelected = data;
                     break;
                 default:
                     throw new Exception("writeBool not supported for " + element.GetType().ToString());

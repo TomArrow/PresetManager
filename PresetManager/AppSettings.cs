@@ -22,7 +22,7 @@ namespace PresetManager
         private Dictionary<string, PropertyMapping> mappings = new Dictionary<string, PropertyMapping>();
 
         /// <summary>
-        /// Bind this settings object to WPF controls. Supported mappings: bool to CheckBox, enum to RadioButtons, string, double, float, int to TextBox
+        /// Bind this settings object to WPF controls. Supported mappings: bool to CheckBox, enum to RadioButtons or ListBoxItems, string, double, float, int to TextBox
         /// </summary>
         /// <param name="dataContext">The WPF element that contains all the controls required for binding</param>
         /// <param name="autoUpdateSettingsObject">Whether to attach event handlers to automatically apply changes in the GUI to the settings object</param>
@@ -32,9 +32,16 @@ namespace PresetManager
             updateMappings(autoUpdateSettingsObject);
         }
         
-        public void BindConfig(ConfigAdapter config)
+        public void BindConfig(ConfigAdapter config,bool loadDefaultAutomatically = true)
         {
             _configAdapter = config;
+            if (loadDefaultAutomatically)
+            {
+                _configAdapter.setCurrentConfig("default");
+                _configAdapter.loadCurrentConfig();
+                readFromConfig();
+                sendToGUI();
+            }
         }
 
         public void attachPresetManager(wincon.Panel container,int comboBoxMinWidth= 200)
