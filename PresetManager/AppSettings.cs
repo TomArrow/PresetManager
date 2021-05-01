@@ -7,6 +7,7 @@ using System.Reflection;
 using PresetManager.Attributes;
 using System.Windows;
 using System.ComponentModel;
+using wincon = System.Windows.Controls;
 
 namespace PresetManager
 {
@@ -14,7 +15,7 @@ namespace PresetManager
     {
         private GUIAdapter _dataContext = null;
 
-        private string currentPreset = "";
+        private ConfigAdapter _configAdapter = null;
 
         private Dictionary<string, PropertyMapping> mappings = new Dictionary<string, PropertyMapping>();
 
@@ -28,11 +29,44 @@ namespace PresetManager
             _dataContext = dataContext;
             updateMappings(autoUpdateSettingsObject);
         }
-
-        public void SetPresetFolder()
+        
+        public void BindConfig(ConfigAdapter config)
         {
-
+            _configAdapter = config;
         }
+
+        public void attachPresetManager(wincon.Panel container)
+        {
+            if(_configAdapter == null)
+            {
+                throw new Exception("Cannot create a preset manager before attaching a config via BindConfig()");
+            }
+
+            wincon.GroupBox groupbox = new wincon.GroupBox();
+            groupbox.Header = "Presets";
+            wincon.WrapPanel groupboxInner = new wincon.WrapPanel();
+            groupbox.Content = groupboxInner;
+
+            wincon.ComboBox comboBox = new wincon.ComboBox();
+            comboBox.ItemsSource = _configAdapter.getAvailableConfigs();
+            comboBox.IsEditable = true;
+            comboBox.SelectedValue = "default";
+
+            wincon.Button btnLoadPreset = new wincon.Button();
+            btnLoadPreset.Content = "Load";
+            btnLoadPreset.Click += (a,b) => { loadFromPreset(comboBox.Text); };
+
+            wincon.Button btnSavePreset = new wincon.Button();
+            btnSavePreset.Content = "Save";
+            btnSavePreset.Click += (a, b) => { saveToPreset(comboBox.Text); comboBox.ItemsSource = _configAdapter.getAvailableConfigs(); };
+
+            container.Children.Add(groupbox);
+            groupboxInner.Children.Add(comboBox);
+            groupboxInner.Children.Add(btnLoadPreset);
+            groupboxInner.Children.Add(btnSavePreset);
+        }
+
+
 
 
 
@@ -114,19 +148,55 @@ namespace PresetManager
 
         }*/
 
-        public void setCurrentPreset(string preset)
+
+        public void saveToPreset(string presetName)
         {
+            _configAdapter.setCurrentConfig(presetName);
+            sendToConfig();
+            _configAdapter.saveCurrentConfig();
 
         }
 
-        public void saveToPreset(string preset = null)
+        public void loadFromPreset(string presetName,bool writeToGUIAfterLoading = true)
         {
-
+            _configAdapter.setCurrentConfig(presetName);
+            _configAdapter.loadCurrentConfig();
+            readFromConfig();
+            if(writeToGUIAfterLoading && _dataContext!= null)
+            {
+                sendToGUI();
+            }
         }
 
-        public void loadFromPreset(string preset= null)
-        {
 
+
+        private void sendToConfig()
+        {
+            if (_configAdapter == null)
+            {
+                throw new Exception("Cannot send to config unless configAdapter has been set using BindConfig()");
+            }
+
+            foreach (KeyValuePair<string, PropertyMapping> mappingPair in mappings)
+            {
+                string fieldName = mappingPair.Key;
+
+                sendSingleValueToConfig(fieldName);
+            }
+        }
+        private void readFromConfig()
+        {
+            if (_configAdapter == null)
+            {
+                throw new Exception("Cannot read from config unless configAdapter has been set using BindConfig()");
+            }
+
+            foreach (KeyValuePair<string, PropertyMapping> mappingPair in mappings)
+            {
+                string fieldName = mappingPair.Key;
+
+                readSingleValueFromConfig(fieldName);
+            }
         }
 
 
@@ -134,7 +204,7 @@ namespace PresetManager
         {
             if (_dataContext == null)
             {
-                throw new Exception("Cannot read from GUI unless dataContext has been set using Bind()");
+                throw new Exception("Cannot send to GUI unless dataContext has been set using Bind()");
             }
 
             foreach (KeyValuePair<string, PropertyMapping> mappingPair in mappings)
@@ -159,6 +229,120 @@ namespace PresetManager
                 readSingleValueFromGUI(fieldName);
             }
         }
+
+        public void sendSingleValueToConfig(string fieldName)
+        {
+            PropertyMapping mapping = mappings[fieldName];
+
+            switch (mapping.fieldType.ToString())
+            {
+                case "System.String":
+                    _configAdapter.writeString(fieldName, (string)mapping.fieldInfo.GetValue(this));
+                    break;
+                case "System.Int32":
+                    _configAdapter.writeInteger(fieldName, (int)mapping.fieldInfo.GetValue(this));
+                    break;
+                case "System.Int64":
+                    _configAdapter.writeInteger(fieldName, (Int64)mapping.fieldInfo.GetValue(this));
+                    break;
+                case "System.Single":
+                    _configAdapter.writeFloat(fieldName, (float)mapping.fieldInfo.GetValue(this));
+                    break;
+                case "System.Double":
+                    _configAdapter.writeDouble(fieldName, (double)mapping.fieldInfo.GetValue(this));
+                    break;
+                case "System.Boolean":
+                    _configAdapter.writeBool(fieldName, (bool)mapping.fieldInfo.GetValue(this));
+                    break;
+                default:
+                    if (mapping.GetType() == typeof(PropertyMappingEnum) && mapping.fieldType.IsSubclassOf(typeof(System.Enum)))
+                    {
+
+                        _configAdapter.writeInteger(fieldName, (int)mapping.fieldInfo.GetValue(this));
+                    }
+                    else
+                    {
+
+                        throw new Exception(mapping.fieldType.ToString() + " not implemented for writing to config.");
+                    }
+                    break;
+            }
+        }
+
+        public void readSingleValueFromConfig(string fieldName)
+        {
+            PropertyMapping mapping = mappings[fieldName];
+
+            switch (mapping.fieldType.ToString())
+            {
+                case "System.String":
+                    string guiString = _configAdapter.getAsString(fieldName);
+                    if(guiString != null)
+                    {
+
+                        mapping.fieldInfo.SetValue(this, guiString);
+                    }
+                    break;
+                case "System.Int32":
+                    Int64? guiInt = _configAdapter.getAsInteger(fieldName);
+                    if (guiInt.HasValue)
+                    {
+
+                        mapping.fieldInfo.SetValue(this, (int)Math.Min(Int32.MaxValue,Math.Max(Int32.MinValue,guiInt.Value)));
+                    }
+                    break;
+                case "System.Int64":
+                    Int64? guiInt64 = _configAdapter.getAsInteger(fieldName);
+                    if (guiInt64.HasValue)
+                    {
+
+                        mapping.fieldInfo.SetValue(this, guiInt64.Value);
+                    }
+                    break;
+                case "System.Single":
+                    float? guiFloat = _configAdapter.getAsFloat(fieldName);
+                    if (guiFloat.HasValue)
+                    {
+
+                        mapping.fieldInfo.SetValue(this, guiFloat.Value);
+                    }
+                    break;
+                case "System.Double":
+                    double? guiDouble = _configAdapter.getAsDouble(fieldName);
+                    if (guiDouble.HasValue)
+                    {
+
+                        mapping.fieldInfo.SetValue(this, guiDouble.Value);
+                    }
+                    break;
+                case "System.Boolean":
+                    bool? guiBool = _configAdapter.getAsBool(fieldName);
+                    if (guiBool.HasValue)
+                    {
+
+                        mapping.fieldInfo.SetValue(this, guiBool.Value);
+                    }
+                    break;
+                default:
+                    if (mapping.GetType() == typeof(PropertyMappingEnum) &&  mapping.fieldType.IsSubclassOf(typeof(System.Enum)))
+                    {
+                        Int64? guiInt642 = _configAdapter.getAsInteger(fieldName);
+                        if (guiInt642.HasValue)
+                        {
+
+                            mapping.fieldInfo.SetValue(this, (int)guiInt642.Value);
+                        }
+                    }
+                    else
+                    {
+
+                        throw new Exception(mapping.fieldType.ToString() + " not implemented for reading from config.");
+                    }
+                    break;
+            }
+        }
+
+        
 
         public void sendSingleValueToGUI(string fieldName)
         {
@@ -209,7 +393,7 @@ namespace PresetManager
                     else
                     {
 
-                        throw new Exception(mapping.fieldType.ToString() + " not implemented for reading from GUI.");
+                        throw new Exception(mapping.fieldType.ToString() + " not implemented for writing to GUI.");
                     }
                     break;
             }
@@ -298,14 +482,6 @@ namespace PresetManager
             }
         }
 
-        public void saveToConfig()
-        {
-
-        }
-        public void readFromConfig()
-        {
-
-        }
 
 
 

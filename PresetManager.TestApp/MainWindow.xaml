@@ -8,6 +8,7 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <StackPanel>
+            <WrapPanel x:Name="presetManPanel"></WrapPanel>
             <CheckBox x:Name="checkbox1">Checkbox 1 (test value binary)</CheckBox>
             <TextBox x:Name="textbox1">200</TextBox>
             <WrapPanel>

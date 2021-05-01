@@ -27,6 +27,8 @@ namespace PresetManager.TestApp
             InitializeComponent();
 
             testSettings.Bind(this);
+            testSettings.BindConfig("config");
+            testSettings.attachPresetManager(presetManPanel);
             //PresetMan.Register(testSettings, this);
             testSettings.readFromGUI();
             testSettings.radioValue = TestSettings.TestRadioValue.value3;
