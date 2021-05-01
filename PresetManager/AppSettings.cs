@@ -8,6 +8,8 @@ using PresetManager.Attributes;
 using System.Windows;
 using System.ComponentModel;
 using wincon = System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace PresetManager
 {
@@ -35,7 +37,7 @@ namespace PresetManager
             _configAdapter = config;
         }
 
-        public void attachPresetManager(wincon.Panel container)
+        public void attachPresetManager(wincon.Panel container,int comboBoxMinWidth= 200)
         {
             if(_configAdapter == null)
             {
@@ -50,17 +52,32 @@ namespace PresetManager
             wincon.ComboBox comboBox = new wincon.ComboBox();
             comboBox.ItemsSource = _configAdapter.getAvailableConfigs();
             comboBox.IsEditable = true;
+            comboBox.MinWidth = comboBoxMinWidth;
             comboBox.SelectedValue = "default";
 
             wincon.Button btnLoadPreset = new wincon.Button();
-            btnLoadPreset.Content = "Load";
+            wincon.Image imgLoad = new wincon.Image();
+            imgLoad.Stretch = Stretch.None;
+            imgLoad.Source = new BitmapImage(new Uri("pack://application:,,,/PresetManager;component/images/Open_16x.png"));
+            btnLoadPreset.Content = imgLoad;
             btnLoadPreset.Click += (a,b) => { loadFromPreset(comboBox.Text); };
 
             wincon.Button btnSavePreset = new wincon.Button();
-            btnSavePreset.Content = "Save";
+            wincon.Image imgSave = new wincon.Image();
+            imgSave.Stretch = Stretch.None;
+            imgSave.Source = new BitmapImage(new Uri("pack://application:,,,/PresetManager;component/images/Save_16x.png"));
+            btnSavePreset.Content = imgSave;
             btnSavePreset.Click += (a, b) => { saveToPreset(comboBox.Text); comboBox.ItemsSource = _configAdapter.getAvailableConfigs(); };
 
+            wincon.Button btnRefreshPresets = new wincon.Button();
+            wincon.Image imgRefresh = new wincon.Image();
+            imgRefresh.Stretch = Stretch.None;
+            imgRefresh.Source = new BitmapImage( new Uri("pack://application:,,,/PresetManager;component/images/Refresh_16x.png"));
+            btnRefreshPresets.Content = imgRefresh;
+            btnRefreshPresets.Click += (a, b) => { comboBox.ItemsSource = _configAdapter.getAvailableConfigs(); };
+
             container.Children.Add(groupbox);
+            groupboxInner.Children.Add(btnRefreshPresets);
             groupboxInner.Children.Add(comboBox);
             groupboxInner.Children.Add(btnLoadPreset);
             groupboxInner.Children.Add(btnSavePreset);
@@ -69,7 +86,7 @@ namespace PresetManager
 
 
 
-
+        // TODO Automatically read default values and write to default config if none exists at startup.
         public void updateMappings(bool autoUpdateSettingsObject = true)
         {
 
@@ -94,6 +111,7 @@ namespace PresetManager
                     PropertyMappingEnum propertyMapping = new PropertyMappingEnum();
                     propertyMapping.fieldInfo = member;
                     propertyMapping.fieldType = fieldType;
+                    propertyMapping.defaultValue = member.GetValue(this);
                     FieldInfo[] enumMembers = member.FieldType.GetFields();
                     int[] enumValues = (int[])member.FieldType.GetEnumValues();
                     int enumValueIndex = 0;
@@ -129,6 +147,7 @@ namespace PresetManager
                     PropertyMapping propertyMapping = new PropertyMapping(controlInfo.getSourceElement());
                     propertyMapping.fieldType = fieldType;
                     propertyMapping.fieldInfo = member;
+                    propertyMapping.defaultValue = member.GetValue(this);
                     if (autoUpdateSettingsObject)
                     {
 
@@ -281,6 +300,9 @@ namespace PresetManager
                     {
 
                         mapping.fieldInfo.SetValue(this, guiString);
+                    } else if (mapping.defaultValue != null)
+                    {
+                        mapping.fieldInfo.SetValue(this, mapping.defaultValue);
                     }
                     break;
                 case "System.Int32":
@@ -290,6 +312,10 @@ namespace PresetManager
 
                         mapping.fieldInfo.SetValue(this, (int)Math.Min(Int32.MaxValue,Math.Max(Int32.MinValue,guiInt.Value)));
                     }
+                    else if (mapping.defaultValue != null)
+                    {
+                        mapping.fieldInfo.SetValue(this, mapping.defaultValue);
+                    }
                     break;
                 case "System.Int64":
                     Int64? guiInt64 = _configAdapter.getAsInteger(fieldName);
@@ -297,6 +323,10 @@ namespace PresetManager
                     {
 
                         mapping.fieldInfo.SetValue(this, guiInt64.Value);
+                    }
+                    else if (mapping.defaultValue != null)
+                    {
+                        mapping.fieldInfo.SetValue(this, mapping.defaultValue);
                     }
                     break;
                 case "System.Single":
@@ -306,6 +336,10 @@ namespace PresetManager
 
                         mapping.fieldInfo.SetValue(this, guiFloat.Value);
                     }
+                    else if (mapping.defaultValue != null)
+                    {
+                        mapping.fieldInfo.SetValue(this, mapping.defaultValue);
+                    }
                     break;
                 case "System.Double":
                     double? guiDouble = _configAdapter.getAsDouble(fieldName);
@@ -314,6 +348,10 @@ namespace PresetManager
 
                         mapping.fieldInfo.SetValue(this, guiDouble.Value);
                     }
+                    else if (mapping.defaultValue != null)
+                    {
+                        mapping.fieldInfo.SetValue(this, mapping.defaultValue);
+                    }
                     break;
                 case "System.Boolean":
                     bool? guiBool = _configAdapter.getAsBool(fieldName);
@@ -321,6 +359,10 @@ namespace PresetManager
                     {
 
                         mapping.fieldInfo.SetValue(this, guiBool.Value);
+                    }
+                    else if (mapping.defaultValue != null)
+                    {
+                        mapping.fieldInfo.SetValue(this, mapping.defaultValue);
                     }
                     break;
                 default:
@@ -334,6 +376,10 @@ namespace PresetManager
                             mapping.fieldInfo.SetValue(this, Enum.Parse(mapping.fieldType, enumName, true)); // This will throw an exception if there is an string value in the config that does not correlate to any of the enum values. But that's okay maybe.
                             //}
                             //mapping.fieldInfo.SetValue(this, (int)guiInt642.Value);
+                        }
+                        else if (mapping.defaultValue != null)
+                        {
+                            mapping.fieldInfo.SetValue(this, mapping.defaultValue);
                         }
                     }
                     else
@@ -415,6 +461,10 @@ namespace PresetManager
 
                         mapping.fieldInfo.SetValue(this, guiString);
                     }
+                    else if (mapping.defaultValue != null)
+                    {
+                        mapping.fieldInfo.SetValue(this, mapping.defaultValue);
+                    }
                     break;
                 case "System.Int32":
                     Int64? guiInt = _dataContext.getAsInteger(mapping.mappedName);
@@ -422,6 +472,10 @@ namespace PresetManager
                     {
 
                         mapping.fieldInfo.SetValue(this, (int)Math.Min(Int32.MaxValue,Math.Max(Int32.MinValue,guiInt.Value)));
+                    }
+                    else if (mapping.defaultValue != null)
+                    {
+                        mapping.fieldInfo.SetValue(this, mapping.defaultValue);
                     }
                     break;
                 case "System.Int64":
@@ -431,6 +485,10 @@ namespace PresetManager
 
                         mapping.fieldInfo.SetValue(this, guiInt64.Value);
                     }
+                    else if (mapping.defaultValue != null)
+                    {
+                        mapping.fieldInfo.SetValue(this, mapping.defaultValue);
+                    }
                     break;
                 case "System.Single":
                     float? guiFloat = _dataContext.getAsFloat(mapping.mappedName);
@@ -438,6 +496,10 @@ namespace PresetManager
                     {
 
                         mapping.fieldInfo.SetValue(this, guiFloat.Value);
+                    }
+                    else if (mapping.defaultValue != null)
+                    {
+                        mapping.fieldInfo.SetValue(this, mapping.defaultValue);
                     }
                     break;
                 case "System.Double":
@@ -447,6 +509,10 @@ namespace PresetManager
 
                         mapping.fieldInfo.SetValue(this, guiDouble.Value);
                     }
+                    else if (mapping.defaultValue != null)
+                    {
+                        mapping.fieldInfo.SetValue(this, mapping.defaultValue);
+                    }
                     break;
                 case "System.Boolean":
                     bool? guiBool = _dataContext.getAsBool(mapping.mappedName);
@@ -454,6 +520,10 @@ namespace PresetManager
                     {
 
                         mapping.fieldInfo.SetValue(this, guiBool.Value);
+                    }
+                    else if (mapping.defaultValue != null)
+                    {
+                        mapping.fieldInfo.SetValue(this, mapping.defaultValue);
                     }
                     break;
                 default:
@@ -474,6 +544,13 @@ namespace PresetManager
                                 throw new Exception(fieldName+": Multiple simmultaneously active radio buttons for enum mapping are not allowed.");
                             }
                         }
+                        if(enumNumber == -1)
+                        {
+                            if (mapping.defaultValue != null)
+                            {
+                                enumNumber = (int)mapping.defaultValue;
+                            }
+                        }
                         mapping.fieldInfo.SetValue(this, enumNumber);
                     }
                     else
@@ -491,6 +568,7 @@ namespace PresetManager
 
         class PropertyMapping
         {
+            public object defaultValue;
             public FieldInfo fieldInfo;
             public Type fieldType;
             public string mappedName;

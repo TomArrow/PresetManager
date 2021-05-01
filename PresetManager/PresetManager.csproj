@@ -12,7 +12,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="images\Open_16x.png" />
+    <None Remove="images\Refresh_16x.png" />
+    <None Remove="images\Save_16x.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Salaros.ConfigParser" Version="0.3.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="images\Open_16x.png" />
+    <Resource Include="images\Refresh_16x.png" />
+    <Resource Include="images\Save_16x.png" />
   </ItemGroup>
 
 </Project>
