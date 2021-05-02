@@ -161,19 +161,22 @@ namespace PresetManager
                             Control controlInfoHere = (Control)enumMember.GetCustomAttribute(typeof(Control));
                             if (controlInfoHere == null)
                             {
-                                throw new Exception("Enum member " + enumMember.Name + " has no Control attribute set. No binding posssible.");
+                                throw new Exception("Enum member " + enumMember.Name + " has no Control attribute set. No binding posssible. If you wish to explicitly use a settings value that doesn't have a WPF representation, use [Control(null)].");
                             }
                             propertyMapping.mappedNames.Add(enumValue,controlInfoHere.getSourceElement());
                             
 
                             string localCopyOfMemberNameForLambda = member.Name;
-                            _dataContext.attachEventHandler(controlInfoHere.getSourceElement(), (a) => {
-                                if (autoUpdateSettingsObject)
-                                {
-                                    readSingleValueFromGUI(localCopyOfMemberNameForLambda);
-                                }
-                                OnValueUpdatedInGUI(new ValueUpdatedEventArgs(localCopyOfMemberNameForLambda));
-                            });
+                            if (controlInfoHere.getSourceElement() != null)
+                            {
+                                _dataContext.attachEventHandler(controlInfoHere.getSourceElement(), (a) => {
+                                    if (autoUpdateSettingsObject)
+                                    {
+                                        readSingleValueFromGUI(localCopyOfMemberNameForLambda);
+                                    }
+                                    OnValueUpdatedInGUI(new ValueUpdatedEventArgs(localCopyOfMemberNameForLambda));
+                                });
+                            }
                             
                         }
                     }
@@ -183,7 +186,7 @@ namespace PresetManager
 
                     if (controlInfo == null)
                     {
-                        throw new Exception("Field " + member.Name + " has no Control attribute set. No binding posssible.");
+                        throw new Exception("Field " + member.Name + " has no Control attribute set. No binding posssible. If you wish to explicitly use a settings value that doesn't have a WPF representation, use [Control(null)].");
                     }
 
                     PropertyMapping propertyMapping = new PropertyMapping(controlInfo.getSourceElement());
@@ -196,13 +199,16 @@ namespace PresetManager
                     }
 
                     string localCopyOfMemberNameForLambda = member.Name;
-                    _dataContext.attachEventHandler(controlInfo.getSourceElement(), (a) => {
-                        if (autoUpdateSettingsObject)
-                        {
-                            readSingleValueFromGUI(localCopyOfMemberNameForLambda);
-                        }
-                        OnValueUpdatedInGUI(new ValueUpdatedEventArgs(localCopyOfMemberNameForLambda)); 
-                    });
+                    if (controlInfo.getSourceElement() != null)
+                    {
+                        _dataContext.attachEventHandler(controlInfo.getSourceElement(), (a) => {
+                            if (autoUpdateSettingsObject)
+                            {
+                                readSingleValueFromGUI(localCopyOfMemberNameForLambda);
+                            }
+                            OnValueUpdatedInGUI(new ValueUpdatedEventArgs(localCopyOfMemberNameForLambda));
+                        });
+                    }
                     
                     mappingsNew.Add(member.Name, propertyMapping);
                 }
@@ -450,21 +456,27 @@ namespace PresetManager
             switch (mapping.fieldType.ToString())
             {
                 case "System.String":
+                    if (mapping.mappedName == null) { break; } // If no element is mapped to this particular element, we can't write it.
                     _dataContext.writeString(mapping.mappedName,(string)mapping.fieldInfo.GetValue(this));
                     break;
                 case "System.Int32":
+                    if (mapping.mappedName == null) { break; } // If no element is mapped to this particular element, we can't write it.
                     _dataContext.writeInteger(mapping.mappedName,(int)mapping.fieldInfo.GetValue(this));
                     break;
                 case "System.Int64":
+                    if (mapping.mappedName == null) { break; } // If no element is mapped to this particular element, we can't write it.
                     _dataContext.writeInteger(mapping.mappedName,(Int64)mapping.fieldInfo.GetValue(this));
                     break;
                 case "System.Single":
+                    if (mapping.mappedName == null) { break; } // If no element is mapped to this particular element, we can't write it.
                     _dataContext.writeFloat(mapping.mappedName, (float)mapping.fieldInfo.GetValue(this));
                     break;
                 case "System.Double":
+                    if (mapping.mappedName == null) { break; } // If no element is mapped to this particular element, we can't write it.
                     _dataContext.writeDouble(mapping.mappedName, (double)mapping.fieldInfo.GetValue(this));
                     break;
                 case "System.Boolean":
+                    if (mapping.mappedName == null) { break; } // If no element is mapped to this particular element, we can't write it.
                     _dataContext.writeBool(mapping.mappedName, (bool)mapping.fieldInfo.GetValue(this));
                     break;
                 default:
@@ -475,7 +487,8 @@ namespace PresetManager
                         int valueToSet  = (int)mapping.fieldInfo.GetValue(this); 
                         foreach (KeyValuePair<int, string> subMapping in (mapping as PropertyMappingEnum).mappedNames)
                         {
-                            if(subMapping.Key == valueToSet)
+                            if (subMapping.Value == null) { continue; } // If no element is mapped to this particular element, we can't write it.
+                            if (subMapping.Key == valueToSet)
                             {
                                 _dataContext.writeBool(subMapping.Value,true);
                                 activeRadios++;
@@ -505,6 +518,7 @@ namespace PresetManager
             switch (mapping.fieldType.ToString())
             {
                 case "System.String":
+                    if(mapping.mappedName == null) { break; } // If no element is mapped to this particular element, we can't read it.
                     string guiString =  _dataContext.getAsString(mapping.mappedName);
                     if(guiString != null)
                     {
@@ -517,6 +531,7 @@ namespace PresetManager
                     }
                     break;
                 case "System.Int32":
+                    if (mapping.mappedName == null) { break; } // If no element is mapped to this particular element, we can't read it.
                     Int64? guiInt = _dataContext.getAsInteger(mapping.mappedName);
                     if (guiInt.HasValue)
                     {
@@ -529,6 +544,7 @@ namespace PresetManager
                     }
                     break;
                 case "System.Int64":
+                    if (mapping.mappedName == null) { break; } // If no element is mapped to this particular element, we can't read it.
                     Int64? guiInt64 = _dataContext.getAsInteger(mapping.mappedName);
                     if (guiInt64.HasValue)
                     {
@@ -541,6 +557,7 @@ namespace PresetManager
                     }
                     break;
                 case "System.Single":
+                    if (mapping.mappedName == null) { break; } // If no element is mapped to this particular element, we can't read it.
                     float? guiFloat = _dataContext.getAsFloat(mapping.mappedName);
                     if (guiFloat.HasValue)
                     {
@@ -553,6 +570,7 @@ namespace PresetManager
                     }
                     break;
                 case "System.Double":
+                    if (mapping.mappedName == null) { break; } // If no element is mapped to this particular element, we can't read it.
                     double? guiDouble = _dataContext.getAsDouble(mapping.mappedName);
                     if (guiDouble.HasValue)
                     {
@@ -565,6 +583,7 @@ namespace PresetManager
                     }
                     break;
                 case "System.Boolean":
+                    if (mapping.mappedName == null) { break; } // If no element is mapped to this particular element, we can't read it.
                     bool? guiBool = _dataContext.getAsBool(mapping.mappedName);
                     if (guiBool.HasValue)
                     {
@@ -584,6 +603,7 @@ namespace PresetManager
                         int activeRadios = 0;
                         foreach(KeyValuePair<int,string> subMapping in (mapping as PropertyMappingEnum).mappedNames)
                         {
+                            if(subMapping.Value == null) { continue; } // If no element is mapped to this particular element, we can't read it.
                             if (_dataContext.getAsBool(subMapping.Value) == true)
                             {
                                 enumNumber = subMapping.Key;
@@ -622,7 +642,7 @@ namespace PresetManager
             public object defaultValue = null;
             public FieldInfo fieldInfo;
             public Type fieldType;
-            public string mappedName;
+            public string mappedName = null;
             public PropertyMapping( string mappedNameA)
             {
                 mappedName = mappedNameA;
