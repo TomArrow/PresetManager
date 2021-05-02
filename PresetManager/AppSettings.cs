@@ -38,11 +38,34 @@ namespace PresetManager
         private Dictionary<string, PropertyMapping> mappings = new Dictionary<string, PropertyMapping>();
 
         public delegate void ValueUpdatedEventHandler(object sender, ValueUpdatedEventArgs e);
+        /// <summary>
+        /// Thrown when an element is updated in the GUI (for example WPF). Typically this is simply a *kind of* forward of the WPF event handlers.
+        /// </summary>
         public event ValueUpdatedEventHandler ValueUpdatedInGUI;
+
+        /// <summary>
+        /// Thrown when a full write to the GUI is about to start. Use case: You are listening to ValueUpdatedInGUI for some kind of preview generation that gets updated. But you may be listening to many values. During a full write to GUI, you would get a great amount of updated values, thus possibly calling your preview update code way too often and overburdening your CPU. This allows you to implement a safeguard against that.
+        /// </summary>
+        public event EventHandler FullWriteToGUIStarted;
+
+        /// <summary>
+        /// Thrown when a full write to the GUI has ended. Use case: You are listening to ValueUpdatedInGUI for some kind of preview generation that gets updated. But you may be listening to many values. During a full write to GUI, you would get a great amount of updated values, thus possibly calling your preview update code way too often and overburdening your CPU. This allows you to implement a safeguard against that.
+        /// </summary>
+        public event EventHandler FullWriteToGUIEnded;
 
         protected virtual void OnValueUpdatedInGUI(ValueUpdatedEventArgs e)
         {
             ValueUpdatedEventHandler handler = ValueUpdatedInGUI;
+            handler?.Invoke(this, e);
+        }
+        protected virtual void OnFullWriteToGUIStarted(EventArgs e)
+        {
+            EventHandler handler = FullWriteToGUIStarted;
+            handler?.Invoke(this, e);
+        }
+        protected virtual void OnFullWriteToGUIEnded(EventArgs e)
+        {
+            EventHandler handler = FullWriteToGUIEnded;
             handler?.Invoke(this, e);
         }
 
@@ -282,12 +305,15 @@ namespace PresetManager
                 throw new Exception("Cannot send to GUI unless dataContext has been set using Bind()");
             }
 
+            OnFullWriteToGUIStarted(EventArgs.Empty);
+
             foreach (KeyValuePair<string, PropertyMapping> mappingPair in mappings)
             {
                 string fieldName = mappingPair.Key;
 
                 sendSingleValueToGUI(fieldName);
             }
+            OnFullWriteToGUIEnded(EventArgs.Empty);
         }
 
         public void readFromGUI()
