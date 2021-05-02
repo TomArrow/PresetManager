@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -121,7 +122,8 @@ namespace PresetManager.GUIAdapters
             {
                 case "System.Windows.Controls.TextBox":
                     double retVal;
-                    bool success = double.TryParse(((TextBox)element).Text, out retVal);
+                    bool success = double.TryParse(((TextBox)element).Text.Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture, out retVal);
+                    //bool success = double.TryParse(((TextBox)element).Text, out retVal);
                     if (success)
                     {
                         return retVal;
@@ -147,7 +149,8 @@ namespace PresetManager.GUIAdapters
             {
                 case "System.Windows.Controls.TextBox":
                     float retVal;
-                    bool success = float.TryParse(((TextBox)element).Text, out retVal);
+                    bool success = float.TryParse(((TextBox)element).Text.Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture, out retVal);
+                    //bool success = float.TryParse(((TextBox)element).Text, out retVal);
                     if (success)
                     {
                         return retVal;

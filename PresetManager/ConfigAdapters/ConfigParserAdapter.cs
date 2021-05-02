@@ -1,6 +1,7 @@
 ﻿using Salaros.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -103,7 +104,8 @@ namespace PresetManager.ConfigAdapters
             else
             {
                 double retVal;
-                bool success = double.TryParse(value, out retVal);
+                //bool success = double.TryParse(value, out retVal);
+                bool success = double.TryParse(value.Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture, out retVal);
                 if (success)
                 {
                     return retVal;
@@ -125,7 +127,8 @@ namespace PresetManager.ConfigAdapters
             else
             {
                 float retVal;
-                bool success = float.TryParse(value, out retVal);
+                //bool success = float.TryParse(value, out retVal);
+                bool success = float.TryParse(value.Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture, out retVal);
                 if (success)
                 {
                     return retVal;
