@@ -22,6 +22,8 @@ namespace PresetManager.TestApp
     {
 
         TestSettings testSettings = new TestSettings();
+
+        bool fullWriteToGUIInProgress = false;
         public MainWindow()
         {
             InitializeComponent();
@@ -30,7 +32,17 @@ namespace PresetManager.TestApp
             testSettings.BindConfig("config");
             testSettings.attachPresetManager(presetManPanel);
 
-            testSettings.ValueUpdatedInGUI += (a, b) => { MessageBox.Show("Value "+b.FieldName + " was changed"); };
+            //testSettings.ValueUpdatedInGUI += (a, b) => { MessageBox.Show("Value "+b.FieldName + " was changed"); };
+
+            testSettings.FullWriteToGUIStarted += (a,b) => { fullWriteToGUIInProgress = true; };
+            testSettings.FullWriteToGUIEnded += (a,b) => { fullWriteToGUIInProgress = false; };
+            testSettings.ValueUpdatedInGUI += (a, b) => {
+                if (!fullWriteToGUIInProgress)
+                {
+
+                    MessageBox.Show("Value " + b.FieldName + " was changed. I will not get shown from a preset load.");
+                }
+            };
             //PresetMan.Register(testSettings, this);
             //testSettings.readFromGUI();
             //testSettings.radioValue = TestSettings.TestRadioValue.value3;
